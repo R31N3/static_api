@@ -1,4 +1,4 @@
-import pygame
+import pygame, platform, os
 
 
 class GUI:
@@ -34,7 +34,11 @@ class Label:
         self.bgcolor = pygame.Color("grey")
         self.font_color = pygame.Color("red")
         # Рассчитываем размер шрифта в зависимости от высоты
-        self.font = pygame.font.Font(None, self.rect.height - 4)
+        if platform.system() == "Windows":
+            self.font = pygame.font.SysFont("ds_pixel_cyr", self.rect.height - 11)
+        else:
+            self.font = pygame.font.Font(os.path.abspath('data/fonts/{}.ttf'.format("ds_pixel_cyr")),
+                                         self.rect.height - 11)
         self.rendered_text = None
         self.rendered_rect = None
 

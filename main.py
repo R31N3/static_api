@@ -9,7 +9,8 @@ from some_ui import *
 def main():
     def reMakeImage(cords, z):
         try:
-            map_request = "https://static-maps.yandex.ru/1.x/?ll={}&size=650,450&z={}&l=map".format(cords, z)
+            map_request = "https://static-maps.yandex.ru/1.x/?ll={}&size=650,450&z={}&l={}".format(cords, z,
+                                                                                                   map_types[map_type])
             response = requests.get(map_request)
 
             if not response:
@@ -26,16 +27,16 @@ def main():
             print("Ошибка записи временного файла:", ex)
             sys.exit(2)
 
-    # coords, z = input(), input()
-    '''
-    33.4534,43.5654
-    5
-    '''
+# coords, z = input(), input()
+# '''
+# 33.4534,43.5654
+# 5
+# '''
     coords, z = '33.4534,43.5654', 5
-
+    map_type = 0
+    map_types = ["map", "sat", "sat,skl"]
     map_file = "map.png"
     reMakeImage(coords, z)
-
     pygame.init()
     surface = pygame.display.set_mode((650, 500))
     surface.blit(pygame.image.load(map_file), (0, 0))
@@ -53,12 +54,28 @@ def main():
                     z = str(int(z)-1) if int(z) > 1 else z
                     reMakeImage(coords, z)
                     scale_const = 0.026211385 * int(z)
+                if event.key == pygame.K_PAGEUP:
+                    z = str(int(z)+1) if int(z) < 17 else z
+                    reMakeImage(coords, z)
+                    scale_const = 0.026211385 * int(z)
                 if event.key == pygame.K_DOWN:
                     z = str(int(z)+1) if int(z) < 16 else z
                     reMakeImage(coords, z)
                     scale_const = 0.026211385 * int(z)
                 if event.key == pygame.K_LEFT:
                     coords = str(const[0] - scale_const) + "," + str(const[1])
+                    reMakeImage(coords, z)
+                if event.key == pygame.K_RIGHT:
+                    coords = str(const[0] + scale_const) + "," + str(const[1])
+                    reMakeImage(coords, z)
+                if event.key == pygame.K_DOWN:
+                    coords = str(const[0]) + "," + str(const[1] - scale_const)
+                    reMakeImage(coords, z)
+                if event.key == pygame.K_UP:
+                    coords = str(const[0]) + "," + str(const[1] + scale_const)
+                    reMakeImage(coords, z)
+                if event.key == pygame.K_c:
+                    map_type = (map_type+1)%3
                     reMakeImage(coords, z)
             gui.get_event(event)  # передаем события пользователя GUI-элементам
         gui.render(surface)  # отрисовываем все GUI-элементы
@@ -73,3 +90,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
