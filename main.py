@@ -7,10 +7,11 @@ from some_ui import *
 
 
 def main():
-    def reMakeImage(cords, z):
+    def reMakeImage(cords, z, dop_args = ""):
         try:
-            map_request = "https://static-maps.yandex.ru/1.x/?ll={}&size=650,450&z={}&l={}".format(cords, z,
-                                                                                                   map_types[map_type])
+            map_request = "https://static-maps.yandex.ru/1.x/?ll={}&size=650,450&z={}&l={}{}".format(cords, z,
+                                                                                                   map_types[map_type],
+                                                                                                     dop_args)
             response = requests.get(map_request)
 
             if not response:
@@ -27,6 +28,19 @@ def main():
             print("Ошибка записи временного файла:", ex)
             sys.exit(2)
 
+    def search_and_correct_coords(request):
+        try:
+            query = "https://geocode-maps.yandex.ru/1.x/?format=json&geocode=" + request
+            response = requests.get(query)
+            if response:
+                response_json = response.json()
+                print(response_json["response"]['GeoObjectCollection']['featureMember'][0]['GeoObject']['Point'][
+                    'pos'])
+                return ",".join(response_json["response"]['GeoObjectCollection']['featureMember'][0]['GeoObject']['Point'][
+                    'pos'].split())
+        except:
+            pass
+
 # coords, z = input(), input()
 # '''
 # 33.4534,43.5654
@@ -41,6 +55,7 @@ def main():
     surface = pygame.display.set_mode((650, 500))
     surface.blit(pygame.image.load(map_file), (0, 0))
     gui = GUI()
+    flag = False
     gui.add_element(TextBox((10, 460, 300, 30), ''))
     pygame.display.flip()
     scale_const = 0.026211385*int(z)
@@ -74,10 +89,16 @@ def main():
                 if event.key == pygame.K_UP:
                     coords = str(const[0]) + "," + str(const[1] + scale_const)
                     reMakeImage(coords, z)
-                if event.key == pygame.K_c:
+                if event.key == pygame.K_TAB:
                     map_type = (map_type+1)%3
                     reMakeImage(coords, z)
-            gui.get_event(event)  # передаем события пользователя GUI-элементам
+            gui.get_event(event)
+            for obj in gui.elements:
+                if obj.submit_button_pressed and not flag:
+                    print(1)
+                    coords = search_and_correct_coords(obj.text)
+                    reMakeImage(coords, z, "&pt={},ya_ru1".format(coords))
+        # передаем события пользователя GUI-элементам
         gui.render(surface)  # отрисовываем все GUI-элементы
         gui.update()  # обновляеем все GUI-элементы
         surface.blit(pygame.image.load(map_file), (0, 0))
