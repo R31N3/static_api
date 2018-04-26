@@ -56,7 +56,6 @@ def main():
     surface = pygame.display.set_mode((650, 500))
     surface.blit(pygame.image.load(map_file), (0, 0))
     gui = GUI()
-    flag = False
     gui.add_element(TextBox((10, 460, 300, 30), ''))
     pygame.display.flip()
     scale_const = 0.026211385*int(z)
@@ -95,10 +94,12 @@ def main():
                     reMakeImage(coords, z, dop_args)
             gui.get_event(event)
             for obj in gui.elements:
-                if obj.submit_button_pressed and not flag:
-                    print(1)
+                if obj.submit_button_pressed:
                     coords = search_and_correct_coords(obj.text)
                     dop_args = "&pt={},ya_ru1".format(coords)
+                    reMakeImage(coords, z, dop_args)
+                if obj.reset_button_pressed:
+                    dop_args = ""
                     reMakeImage(coords, z, dop_args)
         # передаем события пользователя GUI-элементам
         gui.render(surface)  # отрисовываем все GUI-элементы
