@@ -8,11 +8,14 @@ class GUI:
     def add_element(self, element):
         self.elements.append(element)
 
-    def render(self, surface):
+    def render(self, surface, text):
         for element in self.elements:
             render = getattr(element, "render", None)
             if callable(render):
-                element.render(surface)
+                if "Label" in str(type(element)):
+                    element.render(surface, text)
+                else:
+                    element.render(surface)
 
     def update(self):
         for element in self.elements:
@@ -42,7 +45,8 @@ class Label:
         self.rendered_text = None
         self.rendered_rect = None
 
-    def render(self, surface):
+    def render(self, surface, address = "bicycle"): #шутка(нет, не шутка) про велосипед
+        self.text = address if address != "bicycle" else self.text
         surface.fill(self.bgcolor, self.rect)
         self.rendered_text = self.font.render(self.text, 1, self.font_color)
         self.rendered_rect = self.rendered_text.get_rect(x=self.rect.x + 2, centery=self.rect.centery)

@@ -34,14 +34,12 @@ def main():
             response = requests.get(query)
             if response:
                 response_json = response.json()
-                print(response_json["response"]['GeoObjectCollection']['featureMember'][0]['GeoObject']['Point'][
-                    'pos'])
-                return ",".join(response_json["response"]['GeoObjectCollection']['featureMember'][0]
-                                ['GeoObject']['Point']['pos'].split()),\
-                       ",".join(response_json["response"]['GeoObjectCollection']['featureMember'][0]
-                                ['GeoObject']['metaDataProperty']['GeocoderMetaData']['Address']['formatted']),\
-                       ",".join(response_json["response"]['GeoObjectCollection']['featureMember'][0]['GeoObject']
-                                ['metaDataProperty']['GeocoderMetaData']['Address']['postal_code'])
+                return (",".join(response_json["response"]['GeoObjectCollection']['featureMember'][0]
+                                ['GeoObject']['Point']['pos'].split()),
+                       "".join(response_json["response"]['GeoObjectCollection']['featureMember'][0]
+                                ['GeoObject']['metaDataProperty']['GeocoderMetaData']['Address']['formatted']))
+                       #",".join(response_json["response"]['GeoObjectCollection']['featureMember'][0]['GeoObject']
+                       #        ['metaDataProperty']['GeocoderMetaData']['Address']['postal_code']))
         except:
             pass
 
@@ -55,14 +53,14 @@ def main():
     map_types = ["map", "sat", "sat,skl"]
     map_file = "map.png"
     dop_args = ""
-    addres = ""
+    address = ""
     reMakeImage(coords, z, dop_args)
     pygame.init()
     surface = pygame.display.set_mode((650, 500))
     surface.blit(pygame.image.load(map_file), (0, 0))
     gui = GUI()
     gui.add_element(TextBox((10, 460, 300, 30), ''))
-    gui.add_element(Label((10,10, 300, 30), addres))
+    gui.add_element(Label((10,10, 300, 30), address))
     pygame.display.flip()
     scale_const = 0.026211385*int(z)
     while True:
@@ -100,20 +98,20 @@ def main():
                     reMakeImage(coords, z, dop_args)
             gui.get_event(event)
             for obj in gui.elements:
-                print(str(type(obj)))
                 if "Label" not in str(type(obj)):
                     if obj.submit_button_pressed:
-                        coords, adress, post_index = search_and_correct_coords_and_adress(obj.text)
+                        coords, address = search_and_correct_coords_and_adress(obj.text)
                         dop_args = "&pt={},ya_ru1".format(coords)
                         reMakeImage(coords, z, dop_args)
                     if obj.reset_button_pressed:
                         dop_args = ""
-                        addres = ""
+                        address = ""
                         reMakeImage(coords, z, dop_args)
         # передаем события пользователя GUI-элементам
-        gui.render(surface)  # отрисовываем все GUI-элементы
-        gui.update()  # обновляеем все GUI-элементы
+        # обновляеем все GUI-элементы
         surface.blit(pygame.image.load(map_file), (0, 0))
+        gui.render(surface, address)  # отрисовываем все GUI-элементы
+        gui.update()
         pygame.display.flip()
 
     pygame.quit()
