@@ -56,7 +56,7 @@ class Label:
 class Button(Label):
     def __init__(self, rect, text):
         super().__init__(rect, text)
-        self.bgcolor = pygame.Color("blue")
+        self.bgcolor = pygame.Color("grey")
         self.pressed = False  # при создании кнопка не нажата
 
     def render(self, surface, replace_params=None):
