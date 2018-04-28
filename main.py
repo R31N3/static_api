@@ -84,13 +84,11 @@ def main():
                 delta_x = (pos[0]-325)/2**int(z)*1.4063671351351351351351351351351
                 delta_y = -((pos[1]-225)/2**int(z)*0.84311178378378378378378378378378)
                 dop_coords = str(round(float(coords.split(",")[0])+delta_x, 4)) + "," + str(round(float(coords.split(",")[1]) + delta_y, 4))
-                print(dop_coords)
                 dop_args = "&pt={},ya_ru1".format(dop_coords)
                 nothing, address, index = search_and_correct_coords_and_adress(dop_coords)
                 reMakeImage(coords, z, dop_args)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_PAGEDOWN:
-                    print(12)
                     z = str(int(z)-1) if int(z) > 2 else z
                     reMakeImage(coords, z, dop_args)
                 if event.key == pygame.K_PAGEUP:
