@@ -48,20 +48,21 @@ def main():
 # 33.4534,43.5654
 # 5
 # '''
-    coords, z = '33.4534,43.5654', 5
+    coords, z = '33.4534,43.5654', 2
     map_type = 0
     map_types = ["map", "sat", "sat,skl"]
     map_file = "map.png"
     dop_args = ""
     address = ""
+    nothing = ""
     reMakeImage(coords, z, dop_args)
     pygame.init()
-    surface = pygame.display.set_mode((650, 500))
+    surface = pygame.display.set_mode((650, 480))
     surface.blit(pygame.image.load(map_file), (0, 0))
     gui = GUI()
-    gui.add_element(TextBox((10, 460, 300, 30), ''))
+    gui.add_element(TextBox((10, 450, 300, 30), ''))
     gui.add_element(Label((10,10, 450, 30), address))
-    index_button = Button((470, 10, 180, 30), "Показать индекс")
+    index_button = Button((475, 10, 180, 30), "Показать индекс")
     gui.add_element(index_button)
     pygame.display.flip()
     flag = 0
@@ -74,30 +75,38 @@ def main():
             const = [float(i) for i in coords.split(",")]
             if event.type == pygame.QUIT:
                 break
+            if event.type == pygame.MOUSEBUTTONDOWN and not pygame.Rect((475, 10, 180, 30)).collidepoint(
+                pygame.mouse.get_pos()) and not pygame.Rect((10, 450, 650, 30)).collidepoint(
+                pygame.mouse.get_pos()):
+                pos = pygame.mouse.get_pos()
+                # Адские числа в следующих строках - волшебные, они равны смещению координаты при перемещении на 1
+                # пиксель при Z=1.
+                delta_x = (pos[0]-325)/2**int(z)*1.4063671351351351351351351351351
+                delta_y = -((pos[1]-225)/2**int(z)*0.84311178378378378378378378378378)
+                dop_coords = str(round(float(coords.split(",")[0])+delta_x, 4)) + "," + str(round(float(coords.split(",")[1]) + delta_y, 4))
+                print(dop_coords)
+                dop_args = "&pt={},ya_ru1".format(dop_coords)
+                nothing, address, index = search_and_correct_coords_and_adress(dop_coords)
+                reMakeImage(coords, z, dop_args)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_PAGEDOWN:
-                    z = str(int(z)-1) if int(z) > 1 else z
+                    print(12)
+                    z = str(int(z)-1) if int(z) > 2 else z
                     reMakeImage(coords, z, dop_args)
-                    scale_const = 0.026211385 * int(z)
                 if event.key == pygame.K_PAGEUP:
-                    z = str(int(z)+1) if int(z) < 17 else z
+                    z = str(int(z)+1) if int(z) < 19 else z
                     reMakeImage(coords, z, dop_args)
-                    scale_const = 0.026211385 * int(z)
-                if event.key == pygame.K_DOWN:
-                    z = str(int(z)+1) if int(z) < 16 else z
+                if event.key == pygame.K_LEFT and const[0] + ((-325)/2**int(z)*1.4063671351351351351351351351351) >= -90:
+                    coords = str(const[0] + ((-325)/2**int(z)*1.4063671351351351351351351351351)) + "," + str(const[1])
                     reMakeImage(coords, z, dop_args)
-                    scale_const = 0.026211385 * int(z)
-                if event.key == pygame.K_LEFT:
-                    coords = str(const[0] - scale_const) + "," + str(const[1])
-                    reMakeImage(coords, z, dop_args)
-                if event.key == pygame.K_RIGHT:
-                    coords = str(const[0] + scale_const) + "," + str(const[1])
+                if event.key == pygame.K_RIGHT and const[0] + ((325)/2**int(z)*1.4063671351351351351351351351351) <= 90:
+                    coords = str(const[0] + (325/2**int(z)*1.4063671351351351351351351351351)) + "," + str(const[1])
                     reMakeImage(coords, z, dop_args)
                 if event.key == pygame.K_DOWN:
-                    coords = str(const[0]) + "," + str(const[1] - scale_const)
+                    coords = str(const[0])+","+ str(const[1] + ((-225)/2**int(z)*0.84311178378378378378378378378378))
                     reMakeImage(coords, z, dop_args)
                 if event.key == pygame.K_UP:
-                    coords = str(const[0]) + "," + str(const[1] + scale_const)
+                    coords = str(const[0])+","+ str(const[1] + (225/2**int(z)*0.84311178378378378378378378378378))
                     reMakeImage(coords, z, dop_args)
                 if event.key == pygame.K_TAB:
                     map_type = (map_type+1)%3
@@ -106,9 +115,10 @@ def main():
             for obj in gui.elements:
                 if "Label" not in str(type(obj)) and "Button" not in str(type(obj)):
                     if obj.submit_button_pressed:
-                        coords, address, index = search_and_correct_coords_and_adress(obj.text)
-                        dop_args = "&pt={},ya_ru1".format(coords)
-                        reMakeImage(coords, z, dop_args)
+                        if obj.text:
+                            coords, address, index = search_and_correct_coords_and_adress(obj.text)
+                            dop_args = "&pt={},ya_ru1".format(coords)
+                            reMakeImage(coords, z, dop_args)
                     if obj.reset_button_pressed:
                         dop_args = ""
                         address = ""

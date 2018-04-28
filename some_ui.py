@@ -106,6 +106,7 @@ class TextBox(Label):
         self.reset_button_rect = self.reset_button_rect.move(self.submit_button_rect.width + 10, 0)
         self.reset_button_rect.width = 150
         self.reset_button_pressed = False
+        print(self.submit_button_rect)
 
     def get_event(self, event):
         if event.type == pygame.KEYDOWN and self.active:
