@@ -176,7 +176,7 @@ def main():
 
     pygame.quit()
 
-    os.remove(map_file)  # Удаляем за собой файл с изображением.
+    os.remove(map_file)
 
 
 if __name__ == '__main__':
