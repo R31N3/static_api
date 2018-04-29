@@ -1,4 +1,4 @@
-import pygame, math
+import pygame
 import requests
 import sys
 import os
