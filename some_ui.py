@@ -40,12 +40,12 @@ class Label:
         if platform.system() == "Windows":
             self.font = pygame.font.SysFont("ds_pixel_cyr", self.rect.height - 11)
         else:
-            self.font = pygame.font.Font(os.path.abspath('data/fonts/{}.ttf'.format("ds_pixel_cyr")),
-                                         self.rect.height - 11)
+            self.font = pygame.font.Font(os.path.abspath('data/fonts/{}.ttf'
+                              .format("ds_pixel_cyr")), self.rect.height - 11)
         self.rendered_text = None
         self.rendered_rect = None
 
-    def render(self, surface, address = "Поле адреса"):
+    def render(self, surface, address="Поле адреса"):
         self.text = address if address != "Поле адреса" else self.text
         surface.fill(self.bgcolor, self.rect)
         self.rendered_text = self.font.render(self.text, 1, self.font_color)

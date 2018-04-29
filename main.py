@@ -39,15 +39,28 @@ def main():
                     "отсутствует"
                 return (",".join(response_json['Point']['pos'].split()),
                        "".join(response_json['metaDataProperty']['GeocoderMetaData']['Address']['formatted']), index)
-
         except:
             pass
 
-# coords, z = input(), input()
-# '''
-# 33.4534,43.5654
-# 5
-# '''
+    def search_organisation(request, ll_center):
+        try:
+            query = "https://search-maps.yandex.ru/v1/?apikey=" \
+                    + organisation_api_key \
+                    + "&text=" + ll_center \
+                    + "&[type=biz]" \
+                    + "&ll=" + ll_center \
+                    + "&spn= 0.000031,0.000646"
+            response = requests.get(query)
+            if response:
+                response_json = response.json()["response"]['GeoObjectCollection']['featureMember'][0]['GeoObject']
+                index = response_json['metaDataProperty']['GeocoderMetaData']['Address']['postal_code'] if \
+                    "postal_code" in response_json['metaDataProperty']['GeocoderMetaData']['Address'].keys() else \
+                    "отсутствует"
+                return (",".join(response_json['Point']['pos'].split()),
+                       "".join(response_json['metaDataProperty']['GeocoderMetaData']['Address']['formatted']), index)
+        except:
+            pass
+
     coords, z = '-37.028110,21.138082', 1
     map_type = 0
     map_types = ["map", "sat", "sat,skl"]
@@ -55,16 +68,15 @@ def main():
     dop_args = ""
     address = "Поле адреса"
     nothing = ""
+    organisation_api_key = '3c4a592e-c4c0-4949-85d1-97291c87825c'
     reMakeImage(coords, z, dop_args)
     pygame.init()
-    surface = pygame.display.set_mode((650, 520))
+    surface = pygame.display.set_mode((650, 485))
     surface.blit(pygame.image.load(map_file), (0, 0))
     gui = GUI()
     gui.add_element(TextBox((10, 450, 300, 30), '', 'Искать!', "Search"))
     gui.add_element(Label((10,10, 450, 30), address))
     index_button = Button((475, 10, 180, 30), "Показать индекс")
-    search_label = TextBox((10, 490, 300, 30), '', 'Искать орг..!', "Search organization")
-    gui.add_element(search_label)
     gui.add_element(index_button)
     pygame.display.flip()
     flag = 0
@@ -72,14 +84,15 @@ def main():
     current_index = ""
     scale_const = 0.026211385*int(z)
     while True:
-        indexes = ["", " Индекс - "+index]
+        indexes = ["", " Индекс - " + index]
         for event in pygame.event.get():
             const = [float(i) for i in coords.split(",")]
             if event.type == pygame.QUIT:
                 break
-            if event.type == pygame.MOUSEBUTTONDOWN and not pygame.Rect((0, 0, 650, 40)).collidepoint(
-                pygame.mouse.get_pos()) and not pygame.Rect((10, 450, 650, 70)).collidepoint(
-                pygame.mouse.get_pos()):
+            if event.type == pygame.MOUSEBUTTONDOWN \
+                    and not pygame.Rect((0, 0, 650, 40)).collidepoint(pygame.mouse.get_pos()) \
+                    and not pygame.Rect((10, 450, 650, 70)).collidepoint(pygame.mouse.get_pos()):
+
                 pos = pygame.mouse.get_pos()
                 # Адские числа в следующих строках - волшебные, они равны смещению координаты при перемещении на 1
                 # пиксель при Z=1.
@@ -88,9 +101,12 @@ def main():
 
                 dop_coords = str(round(float(coords.split(",")[0])+delta_x, 4)) + "," + str(round(float(coords.split(",")[1]) + delta_y, 4))
                 print(dop_coords)
-                dop_args = "&pt={},ya_ru1".format(dop_coords)
-                nothing, address, index = search_and_correct_coords_and_adress(dop_coords)
-                reMakeImage(coords, z, dop_args)
+                if pygame.mouse.get_pressed()[0]:
+                    dop_args = "&pt={},ya_ru1".format(dop_coords)
+                    nothing, address, index = search_and_correct_coords_and_adress(dop_coords)
+                    reMakeImage(coords, z, dop_args)
+                elif pygame.mouse.get_pressed()[1]:
+
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_PAGEDOWN:
                     z = str(int(z)-1) if int(z) > 2 else z
@@ -111,7 +127,7 @@ def main():
                     coords = str(const[0])+","+ str(const[1] + (225/2**int(z)*0.84311178378378378378378378378378))
                     reMakeImage(coords, z, dop_args)
                 if event.key == pygame.K_TAB:
-                    map_type = (map_type+1)%3
+                    map_type = (map_type+1) % 3
                     reMakeImage(coords, z, dop_args)
             gui.get_event(event)
             for obj in gui.elements:
@@ -121,15 +137,13 @@ def main():
                             coords, address, index = search_and_correct_coords_and_adress(obj.text)
                             dop_args = "&pt={},ya_ru1".format(coords)
                             reMakeImage(coords, z, dop_args)
-                        if obj.text and obj.name == "Search organization":
-                            pass
                     if obj.reset_button_pressed:
                         dop_args = ""
                         address = "Поле адреса"
                         current_index = ""
                         reMakeImage(coords, z, dop_args)
                 elif "Button" in str(type(obj)):
-                    flag = (flag+1)%2 if obj.pressed else flag
+                    flag = (flag+1) % 2 if obj.pressed else flag
                     if obj.pressed and address:
                         if address != "Поле адреса":
                             current_index = indexes[flag]
