@@ -48,7 +48,7 @@ def main():
                     + "&type=biz" \
                     + "&lang=ru_RU" \
                     + "&ll=" + ll_center \
-                    + "&spn=0.000031,0.000646"
+                    + "&spn=0.000743,0.000012"
             response = requests.get(query)
             json_response = response.json()
             organization = json_response["features"][0]["properties"]["CompanyMetaData"]
