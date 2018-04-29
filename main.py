@@ -1,10 +1,28 @@
-import pygame
+import pygame, math
 import requests
 import sys
 import os
 # user imports
 from some_ui import *
 
+
+def lonlat_distance(a, b):
+
+    degree_to_meters_factor = 111 * 1000 # 111 километров в метрах
+    a_lon, a_lat = a
+    b_lon, b_lat = b
+
+    # Берем среднюю по широте точку и считаем коэффициент для нее.
+    radians_lattitude = math.radians((a_lat + b_lat) / 2.)
+    lat_lon_factor = math.cos(radians_lattitude)
+
+    # Вычисляем смещения в метрах по вертикали и горизонтали.
+    dx = abs(a_lon - b_lon) * degree_to_meters_factor * lat_lon_factor
+    dy = abs(a_lat - b_lat) * degree_to_meters_factor
+
+    distance = math.sqrt(dx * dx + dy * dy)
+
+    return distance
 
 def main():
     def reMakeImage(cords, z, dop_args):
@@ -42,26 +60,28 @@ def main():
         except:
             pass
 
-    def search_organisation(request, ll_center):
+    def search_organization(ll_center):
         try:
             query = "https://search-maps.yandex.ru/v1/?apikey=" \
                     + organisation_api_key \
-                    + "&text=" + ll_center \
-                    + "&[type=biz]" \
+                    + "&type=biz" \
+                    + "&lang=ru_RU" \
                     + "&ll=" + ll_center \
-                    + "&spn= 0.000031,0.000646"
+                    + "&spn=0.000031,0.000646"
+            response = requests.get(query)
+            json_response = response.json()
+            organization = json_response["features"][0]["properties"]["CompanyMetaData"]
+            org_name = organization["name"]
+            org_address = organization["address"]
+            query = "https://geocode-maps.yandex.ru/1.x/?format=json&geocode=" + org_address
             response = requests.get(query)
             if response:
                 response_json = response.json()["response"]['GeoObjectCollection']['featureMember'][0]['GeoObject']
-                index = response_json['metaDataProperty']['GeocoderMetaData']['Address']['postal_code'] if \
-                    "postal_code" in response_json['metaDataProperty']['GeocoderMetaData']['Address'].keys() else \
-                    "отсутствует"
-                return (",".join(response_json['Point']['pos'].split()),
-                       "".join(response_json['metaDataProperty']['GeocoderMetaData']['Address']['formatted']), index)
+                return (",".join(response_json['Point']['pos'].split()), org_name)
         except:
             pass
 
-    coords, z = '-37.028110,21.138082', 1
+    coords, z = '45.0183,53.1951', 17
     map_type = 0
     map_types = ["map", "sat", "sat,skl"]
     map_file = "map.png"
@@ -82,7 +102,7 @@ def main():
     flag = 0
     index = ""
     current_index = ""
-    scale_const = 0.026211385*int(z)
+    dop_arg = ""
     while True:
         indexes = ["", " Индекс - " + index]
         for event in pygame.event.get():
@@ -98,14 +118,28 @@ def main():
                 # пиксель при Z=1.
                 delta_x = (pos[0]-325)/2**int(z)*1.4063671351351351351351351351351
                 delta_y = -((pos[1]-225)/2**int(z)*0.97363878586278586278586278586276)
-
                 dop_coords = str(round(float(coords.split(",")[0])+delta_x, 4)) + "," + str(round(float(coords.split(",")[1]) + delta_y, 4))
                 print(dop_coords)
                 if pygame.mouse.get_pressed()[0]:
+                    if dop_args:
+                        dop_arg = "~" + dop_args[4:]
                     dop_args = "&pt={},ya_ru1".format(dop_coords)
                     nothing, address, index = search_and_correct_coords_and_adress(dop_coords)
-                    reMakeImage(coords, z, dop_args)
-                elif pygame.mouse.get_pressed()[1]:
+                    print(dop_args+dop_arg)
+
+                    reMakeImage(coords, z, dop_args+dop_arg)
+                elif pygame.mouse.get_pressed()[2]:
+                    point, address = search_organization(dop_coords)
+                    if dop_args:
+                        if "pm2" in dop_args:
+                            dop_args = "&pt={},pm2gnm".format(point)
+                        else:
+                            dop_arg = "~" + point + ",pm2gnm"
+                    else:
+                        dop_args = "&pt={},pm2gnm".format(point)
+                    print(dop_args+dop_arg)
+                    reMakeImage(coords, z, dop_args+dop_arg)
+
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_PAGEDOWN:
@@ -135,10 +169,13 @@ def main():
                     if obj.submit_button_pressed:
                         if obj.text and obj.name == "Search":
                             coords, address, index = search_and_correct_coords_and_adress(obj.text)
+                            if dop_args:
+                                dop_arg = "~" + dop_args[4:]
                             dop_args = "&pt={},ya_ru1".format(coords)
-                            reMakeImage(coords, z, dop_args)
+                            reMakeImage(coords, z, dop_args+dop_arg)
                     if obj.reset_button_pressed:
                         dop_args = ""
+                        dop_arg = ""
                         address = "Поле адреса"
                         current_index = ""
                         reMakeImage(coords, z, dop_args)
