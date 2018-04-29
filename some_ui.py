@@ -45,8 +45,8 @@ class Label:
         self.rendered_text = None
         self.rendered_rect = None
 
-    def render(self, surface, address = "bicycle"): #шутка(нет, не шутка) про велосипед
-        self.text = address if address != "bicycle" else self.text
+    def render(self, surface, address = "Поле адреса"):
+        self.text = address if address != "Поле адреса" else self.text
         surface.fill(self.bgcolor, self.rect)
         self.rendered_text = self.font.render(self.text, 1, self.font_color)
         self.rendered_rect = self.rendered_text.get_rect(x=self.rect.x + 2, centery=self.rect.centery)
@@ -93,8 +93,10 @@ class Button(Label):
 
 
 class TextBox(Label):
-    def __init__(self, rect, text):
+    def __init__(self, rect, text, button_message, name):
         super().__init__(rect, text)
+        self.name = name
+        self.button_message = button_message
         self.active = True
         self.blink = True
         self.blink_timer = 0
@@ -140,7 +142,7 @@ class TextBox(Label):
                              (self.rendered_rect.right + 2, self.rendered_rect.bottom - 2))
 
         Button.render(Button(self.submit_button_rect, ''), surface, {
-            'text': 'Искать!', 'rect': self.submit_button_rect,
+            'text': self.button_message, 'rect': self.submit_button_rect,
             'font_color': self.font_color, 'bgcolor': self.bgcolor,
             'pressed': self.submit_button_pressed
         })

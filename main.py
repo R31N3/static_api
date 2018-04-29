@@ -48,21 +48,23 @@ def main():
 # 33.4534,43.5654
 # 5
 # '''
-    coords, z = '33.4534,43.5654', 2
+    coords, z = '-37.028110,21.138082', 1
     map_type = 0
     map_types = ["map", "sat", "sat,skl"]
     map_file = "map.png"
     dop_args = ""
-    address = ""
+    address = "Поле адреса"
     nothing = ""
     reMakeImage(coords, z, dop_args)
     pygame.init()
-    surface = pygame.display.set_mode((650, 480))
+    surface = pygame.display.set_mode((650, 520))
     surface.blit(pygame.image.load(map_file), (0, 0))
     gui = GUI()
-    gui.add_element(TextBox((10, 450, 300, 30), ''))
+    gui.add_element(TextBox((10, 450, 300, 30), '', 'Искать!', "Search"))
     gui.add_element(Label((10,10, 450, 30), address))
     index_button = Button((475, 10, 180, 30), "Показать индекс")
+    search_label = TextBox((10, 490, 300, 30), '', 'Искать орг..!', "Search organization")
+    gui.add_element(search_label)
     gui.add_element(index_button)
     pygame.display.flip()
     flag = 0
@@ -75,15 +77,17 @@ def main():
             const = [float(i) for i in coords.split(",")]
             if event.type == pygame.QUIT:
                 break
-            if event.type == pygame.MOUSEBUTTONDOWN and not pygame.Rect((475, 10, 180, 30)).collidepoint(
-                pygame.mouse.get_pos()) and not pygame.Rect((10, 450, 650, 30)).collidepoint(
+            if event.type == pygame.MOUSEBUTTONDOWN and not pygame.Rect((0, 0, 650, 40)).collidepoint(
+                pygame.mouse.get_pos()) and not pygame.Rect((10, 450, 650, 70)).collidepoint(
                 pygame.mouse.get_pos()):
                 pos = pygame.mouse.get_pos()
                 # Адские числа в следующих строках - волшебные, они равны смещению координаты при перемещении на 1
                 # пиксель при Z=1.
                 delta_x = (pos[0]-325)/2**int(z)*1.4063671351351351351351351351351
-                delta_y = -((pos[1]-225)/2**int(z)*0.84311178378378378378378378378378)
+                delta_y = -((pos[1]-225)/2**int(z)*0.97363878586278586278586278586276)
+
                 dop_coords = str(round(float(coords.split(",")[0])+delta_x, 4)) + "," + str(round(float(coords.split(",")[1]) + delta_y, 4))
+                print(dop_coords)
                 dop_args = "&pt={},ya_ru1".format(dop_coords)
                 nothing, address, index = search_and_correct_coords_and_adress(dop_coords)
                 reMakeImage(coords, z, dop_args)
@@ -113,19 +117,22 @@ def main():
             for obj in gui.elements:
                 if "Label" not in str(type(obj)) and "Button" not in str(type(obj)):
                     if obj.submit_button_pressed:
-                        if obj.text:
+                        if obj.text and obj.name == "Search":
                             coords, address, index = search_and_correct_coords_and_adress(obj.text)
                             dop_args = "&pt={},ya_ru1".format(coords)
                             reMakeImage(coords, z, dop_args)
+                        if obj.text and obj.name == "Search organization":
+                            pass
                     if obj.reset_button_pressed:
                         dop_args = ""
-                        address = ""
+                        address = "Поле адреса"
                         current_index = ""
                         reMakeImage(coords, z, dop_args)
                 elif "Button" in str(type(obj)):
                     flag = (flag+1)%2 if obj.pressed else flag
                     if obj.pressed and address:
-                        current_index = indexes[flag]
+                        if address != "Поле адреса":
+                            current_index = indexes[flag]
 
 
         # передаем события пользователя GUI-элементам
