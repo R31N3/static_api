@@ -103,7 +103,12 @@ def main():
                 print(dop_coords)
                 if pygame.mouse.get_pressed()[0]:
                     if dop_args:
-                        dop_arg = "~" + dop_args[4:]
+                        if "ya_ru1" not in dop_args:
+                            dop_arg = "~" + dop_args[4:]
+                        else:
+                            temp = dop_args.split("ya_ru1")
+                            if len(temp) > 1:
+                                dop_arg += temp[1]
                     dop_args = "&pt={},ya_ru1".format(dop_coords)
                     nothing, address, index = search_and_correct_coords_and_adress(dop_coords)
                     print(dop_args+dop_arg)
