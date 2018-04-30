@@ -62,7 +62,7 @@ def main():
         except:
             pass
 
-    coords, z = '45.0183,53.1951', 17
+    coords, z = '45.0183,53.1951', 15
     map_type = 0
     map_types = ["map", "sat", "sat,skl"]
     map_file = "map.png"
